@@ -1,0 +1,94 @@
+'use client';
+
+import PageContainer from '@/components/layout/page-container';
+import { useState } from 'react';
+
+export default function Page() {
+  const [url, setUrl] = useState('');
+  const [name, setName] = useState('');
+  const [message, setMessage] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url, name })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Something went wrong.');
+      }
+
+      setMessage('Video uploaded successfully!');
+      setUrl('');
+      setName('');
+    } catch (error: any) {
+      setMessage(error.message || 'An error occurred.');
+    }
+  };
+
+  return (
+    <PageContainer>
+      <div className="p-6">
+        <h1 className="text-lg font-bold">Upload Video</h1>
+        <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
+          <div>
+            <label htmlFor="url" className="block text-sm font-medium">
+              Video URL
+            </label>
+            <input
+              id="url"
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="block w-full rounded border p-2"
+              placeholder="https://example.com/video.mp4"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium">
+              Video Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="block w-full rounded border p-2"
+              placeholder="Enter video name"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+          >
+            Upload
+          </button>
+        </form>
+
+        {message && (
+          <p
+            className={`mt-4 text-sm ${
+              message.includes('successfully')
+                ? 'text-green-600'
+                : 'text-red-600'
+            }`}
+          >
+            {message}
+          </p>
+        )}
+      </div>
+    </PageContainer>
+  );
+}
