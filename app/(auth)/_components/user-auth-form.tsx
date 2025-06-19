@@ -1,5 +1,6 @@
-'use client';
-import { Button } from '@/components/ui/button';
+'use client'
+
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -7,44 +8,50 @@ import {
   FormItem,
   FormLabel,
   FormMessage
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { signIn } from 'next-auth/react';
-import { useSearchParams } from 'next/navigation';
-import { useTransition } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import * as z from 'zod';
-import GithubSignInButton from './github-auth-button';
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { signIn } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
+import { useTransition } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import * as z from 'zod'
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Enter a valid email address' })
-});
+})
 
-type UserFormValue = z.infer<typeof formSchema>;
+type UserFormValue = z.infer<typeof formSchema>
 
 export default function UserAuthForm() {
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl');
-  const [loading, startTransition] = useTransition();
-  const defaultValues = {
-    email: 'demo@gmail.com'
-  };
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl')
+  const [loading, startTransition] = useTransition()
+
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
-    defaultValues
-  });
+    defaultValues: {
+      email: ''
+    }
+  })
 
-  const onSubmit = async (data: UserFormValue) => {
-    startTransition(() => {
-      signIn('credentials', {
-        email: data.email,
-        callbackUrl: callbackUrl ?? '/dashboard'
-      });
-      toast.success('Signed In Successfully!');
-    });
-  };
+  const onSubmit = (data: UserFormValue) => {
+    startTransition(async () => {
+      const res = await signIn('credentials', {
+  email: data.email,
+  redirect: false
+});
+
+if (res?.error) {
+  toast.error('Invalid email or credentials.');
+} else {
+  toast.success('Signed in successfully!');
+  window.location.href = callbackUrl ?? '/dashboard';
+}
+
+    })
+  }
 
   return (
     <>
@@ -58,8 +65,8 @@ export default function UserAuthForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fast login</FormLabel>
-                <FormControl style={{ display: 'none' }}>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
                   <Input
                     type="email"
                     placeholder="Enter your email..."
@@ -77,17 +84,6 @@ export default function UserAuthForm() {
           </Button>
         </form>
       </Form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Mr.User
-          </span>
-        </div>
-      </div>
-      {/*<GithubSignInButton />  */}
     </>
-  );
+  )
 }

@@ -32,7 +32,7 @@ export default async function RootLayout({
       <body className={'overflow-hidden'}>
         <NextTopLoader showSpinner={false} />
         <Providers session={session}>
-          <Toaster />
+          <Toaster  richColors />
           {children}
         </Providers>
       </body>

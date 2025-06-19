@@ -1,6 +1,4 @@
-// Protecting routes with next-auth
-// https://next-auth.js.org/configuration/nextjs#middleware
-// https://nextjs.org/docs/app/building-your-application/routing/middleware
+// middleware.js
 
 import NextAuth from 'next-auth';
 import authConfig from './auth.config';
@@ -8,10 +6,21 @@ import authConfig from './auth.config';
 const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
+  const { pathname } = req.nextUrl;
+
+  // ❌ Skip /api/auth/* (needed for next-auth to work)
+  if (pathname.startsWith('/api/auth')) {
+    return;
+  }
+
+  // 🔐 Redirect unauthenticated users
   if (!req.auth) {
     const url = req.url.replace(req.nextUrl.pathname, '/');
     return Response.redirect(url);
   }
 });
 
-export const config = { matcher: ['/dashboard/:path*'] };
+// ✅ Only apply middleware to these paths
+export const config = {
+  matcher: ['/dashboard/:path*', '/api/:path*'],
+};
